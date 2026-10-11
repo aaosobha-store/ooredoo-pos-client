@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../../api/axios';
-import DateRangePicker, { SingleDatePicker } from '../../components/Daterangepicker';
+import DateRangePicker from '../../components/DateRangePicker';
 import { useLanguage } from '../../context/LanguageContext';
 import {
   FileText, Calendar, Eye, X, RefreshCw, AlertTriangle,
