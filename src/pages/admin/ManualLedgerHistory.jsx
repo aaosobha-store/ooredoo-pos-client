@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import api from '../../api/axios';
-import DateRangePicker from 'src\components\DateRangePicker.jsx';
+import DateRangePicker from '../../components/DateRangePicker';
 import { History, RefreshCw, Coins, Gift, AlertCircle, FileEdit } from 'lucide-react';
 
 const formatDZD = (n) =>

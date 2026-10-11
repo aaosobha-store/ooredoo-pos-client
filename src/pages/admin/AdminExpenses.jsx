@@ -5,7 +5,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import api from '../../api/axios';
-import DateRangePicker from 'src\components\DateRangePicker.jsx';
+import DateRangePicker from '../../components/DateRangePicker';
 import RegisterExpenseModal from '../../components/RegisterExpenseModal.jsx';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

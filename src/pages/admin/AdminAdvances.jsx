@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import api from '../../api/axios';
-import PayrollSection from 'src\pages\admin\PayrollSection';
-import PayrollSettings from 'src\pages\admin\Payrollsettings.jsx';
+import PayrollSection from './PayrollSection';
+import PayrollSettings from './PayrollSettings';
 import {
   Wallet, RefreshCw, X, AlertCircle, CheckCircle2, Search, Store,
   User, ArrowDownCircle, ArrowUpCircle, Banknote, History,
