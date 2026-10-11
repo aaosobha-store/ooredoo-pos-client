@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useLanguage } from '../context/LanguageContext';
-import { interpolate, localeFor } from '../utils/i18n';
+import { interpolate, localeFor } from 'src/tils/I18n.js';
 import {
   X, RefreshCw, Plus, Wallet, Ban, CheckCircle2,
   ArrowDownCircle, ArrowUpCircle, ChevronLeft, ChevronRight, AlertTriangle

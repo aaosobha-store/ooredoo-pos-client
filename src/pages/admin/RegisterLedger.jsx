@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../../api/axios';
-import DateRangePicker from '../../components/DateRangePicker';
+import DateRangePicker from 'src\components\DateRangePicker.jsx';
 import {
   Landmark, Plus, RefreshCw, AlertCircle, CheckCircle2, X, Ban, FilterX,
   ChevronLeft, ChevronRight, ArrowDownToLine, ArrowUpFromLine, Wallet,
