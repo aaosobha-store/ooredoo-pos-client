@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import api from '../../api/axios';
-import DateRangePicker from '../../components/DateRangePicker';
+import DateRangePicker from 'src\components\DateRangePicker.jsx';
 import { useLanguage } from '../../context/LanguageContext';
 import {
   Calendar, RefreshCw, AlertCircle, AlertTriangle, TrendingUp, Coins,
