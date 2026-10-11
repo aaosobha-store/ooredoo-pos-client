@@ -15,8 +15,14 @@ export const LanguageProvider = ({ children }) => {
     document.documentElement.lang = language;
   }, [language]);
 
-  const t = (key) => {
-    return translations[language]?.[key] || translations['en'][key] || key;
+  // t('key')                       -> translated text (falls back to English, then to the key)
+  // t('key', 'English fallback')   -> same, but uses the given text when the key does not exist
+  // t('key', { count: 3 })         -> fills {count} in the translated text
+  const t = (key, arg) => {
+    const text = translations[language]?.[key] || translations['en']?.[key];
+    if (!text) return typeof arg === 'string' ? arg : key;
+    if (arg && typeof arg === 'object') return text.replace(/\{(\w+)\}/g, (match, name) => (arg[name] ?? match));
+    return text;
   };
 
   return (

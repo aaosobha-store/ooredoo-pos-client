@@ -45,13 +45,13 @@ export default function CustomerBrowser({ onSelect }) {
           setRows(r.data.data || []);
         }
       } catch (err) {
-        if (!cancelled) setError(err.response?.data?.message || 'Failed to load customers.');
+        if (!cancelled) setError(err.response?.data?.message || t('crm.load_failed'));
       } finally {
         if (!cancelled) setLoading(false);
       }
     }, q ? 400 : 0);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [q, popOnly, needsOnly, user.id]);
+  }, [q, popOnly, needsOnly, user.id]); // `t` is intentionally not a dependency: it is re-created on every render
 
   // After a correction is sent: show "waiting for the admin" on that row and refresh the notification
   const handleCorrectionSent = (id) => {
@@ -69,19 +69,19 @@ export default function CustomerBrowser({ onSelect }) {
     <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden text-start">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 border-b border-gray-100 bg-gray-50/70">
         <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <UsersRound size={20} className="text-red-600" /> My customers {"(" + rows.length + ")"}
-          <span className="text-[10px] font-black uppercase tracking-wider bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">Read only</span>
+          <UsersRound size={20} className="text-red-600" /> {t('crm.my_customers')} {"(" + rows.length + ")"}
+          <span className="text-[10px] font-black uppercase tracking-wider bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{t('crm.read_only')}</span>
         </h2>
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
           <label className="flex items-center gap-2 text-sm font-bold text-amber-700 cursor-pointer select-none">
             <input type="checkbox" checked={needsOnly}
               onChange={(e) => { setNeedsOnly(e.target.checked); setOffset(0); }}
               className="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500" />
-            <AlertTriangle size={14} /> Needs correction only
+            <AlertTriangle size={14} /> {t('crm.needs_correction_only')}
           </label>
           <div className="relative">
             <Search size={16} className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type="text" value={q} placeholder="Name or phone…"
+            <input type="text" value={q} placeholder={t('crm.search_name_phone')}
               onChange={(e) => { setQ(e.target.value); setOffset(0); }}
               className="w-full sm:w-64 rounded-lg border border-gray-200 ps-9 pe-3 py-2 text-sm font-medium text-gray-900 outline-none focus:border-red-500" />
           </div>
@@ -97,8 +97,8 @@ export default function CustomerBrowser({ onSelect }) {
               <th className={`${th} text-center w-12`}>#</th>
               <th className={`${th} text-start`}>{t('modal.name')}</th>
               <th className={`${th} text-start`}>{t('modal.phone')}</th>
-              <th className={`${th} text-start`}>Cust Code</th>
-              <th className={`${th} text-start`}>Tier</th>
+              <th className={`${th} text-start`}>{t('crm.cust_code')}</th>
+              <th className={`${th} text-start`}>{t('crm.tier')}</th>
               <th className={`${th} text-end`}>{t('crm.available_points')}</th>
               <th className={`${th} text-end`}>{t('crm.total_sims')}</th>
               <th className={`${th} text-end`}>{t('crm.total_spent')}</th>
@@ -129,7 +129,7 @@ export default function CustomerBrowser({ onSelect }) {
                         )}
                         {needsCorrection && (
                           <span className="ms-2 inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black uppercase text-red-700">
-                            <AlertTriangle size={10} /> Needs correction
+                            <AlertTriangle size={10} /> {t('crm.needs_correction')}
                           </span>
                         )}
                       </td>
@@ -159,12 +159,12 @@ export default function CustomerBrowser({ onSelect }) {
       <div className="flex items-center justify-between p-4 border-t border-gray-100 bg-gray-50/50">
         <button onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))} disabled={offset === 0 || loading}
           className="flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50">
-          <ChevronLeft size={16} className="rtl:rotate-180" /> Previous
+          <ChevronLeft size={16} className="rtl:rotate-180" /> {t('common.previous')}
         </button>
-        <span className="text-xs font-bold text-gray-500">Page {page}</span>
+        <span className="text-xs font-bold text-gray-500">{t('common.page')} {page}</span>
         <button onClick={() => setOffset(offset + PAGE_SIZE)} disabled={!hasNext || loading}
           className="flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50">
-          Next <ChevronRight size={16} className="rtl:rotate-180" />
+          {t('common.next')} <ChevronRight size={16} className="rtl:rotate-180" />
         </button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useLanguage } from '../context/LanguageContext';
+import { interpolate, localeFor } from '../utils/i18n';
 import {
   X, RefreshCw, Plus, Wallet, Ban, CheckCircle2,
   ArrowDownCircle, ArrowUpCircle, ChevronLeft, ChevronRight, AlertTriangle
@@ -15,10 +16,10 @@ const NOTE_MAX = 500;
 const formatDZD = (n) =>
   new Intl.NumberFormat('fr-DZ', { style: 'currency', currency: 'DZD' }).format(Number(n) || 0);
 
-const formatTimestamp = (iso) => {
+const formatTimestamp = (iso, locale) => {
   if (!iso) return '—';
   try {
-    return new Date(iso).toLocaleString([], {
+    return new Date(iso).toLocaleString(locale, {
       year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit',
     });
   } catch {
@@ -27,7 +28,8 @@ const formatTimestamp = (iso) => {
 };
 
 export default function CashierAdvancePanel({ sessionId = null, refreshKey = 0, onChange }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const locale = localeFor(language);
   const [data, setData] = useState({ outstanding_balance: 0, items: [] });
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -96,17 +98,17 @@ export default function CashierAdvancePanel({ sessionId = null, refreshKey = 0, 
 
     const raw = String(formAmount).trim();
     if (!raw || !AMOUNT_RE.test(raw)) {
-      setFormError('Amount must be a positive number with up to 2 decimal places.');
+      setFormError(t('validation.amount_positive_decimals'));
       return;
     }
     const amount = Number(raw);
     if (!Number.isFinite(amount) || amount < AMOUNT_MIN || amount > AMOUNT_MAX) {
-      setFormError(`Amount must be between ${formatDZD(AMOUNT_MIN)} and ${formatDZD(AMOUNT_MAX)}.`);
+      setFormError(interpolate(t('validation.amount_between'), { min: formatDZD(AMOUNT_MIN), max: formatDZD(AMOUNT_MAX) }));
       return;
     }
     const noteTrim = formNote.trim();
     if (noteTrim.length > NOTE_MAX) {
-      setFormError(`Note must be at most ${NOTE_MAX} characters.`);
+      setFormError(interpolate(t('validation.note_max'), { max: NOTE_MAX }));
       return;
     }
 
@@ -139,7 +141,7 @@ export default function CashierAdvancePanel({ sessionId = null, refreshKey = 0, 
     setVoidError('');
     const trimmed = voidReason.trim();
     if (trimmed.length < 1 || trimmed.length > 500) {
-      setVoidError('Reason must be between 1 and 500 characters.');
+      setVoidError(t('validation.reason_length'));
       return;
     }
 
@@ -169,38 +171,38 @@ export default function CashierAdvancePanel({ sessionId = null, refreshKey = 0, 
 
       {payroll && (
         <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-br from-emerald-50 to-white">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">My salary · {payroll.month}</p>
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">{t('advances.my_salary')} · {payroll.month}</p>
           <p className="text-3xl font-extrabold text-gray-900">{formatDZD(payroll.total_salary)}</p>
           <div className="mt-3 space-y-1 text-sm text-gray-600">
-            <div className="flex justify-between"><span>Base salary</span><span className="font-medium text-gray-900">{formatDZD(payroll.base_salary)}</span></div>
-            <div className="flex justify-between"><span>SIM commission ({payroll.sim_units})</span><span className="font-medium text-gray-900">{formatDZD(payroll.sim_commission)}</span></div>
-            <div className="flex justify-between"><span>Accessory commission ({payroll.accessory_units})</span><span className="font-medium text-gray-900">{formatDZD(payroll.accessory_commission)}</span></div>
+            <div className="flex justify-between"><span>{t('advances.base_salary')}</span><span className="font-medium text-gray-900">{formatDZD(payroll.base_salary)}</span></div>
+            <div className="flex justify-between"><span>{interpolate(t('advances.sim_commission'), { count: payroll.sim_units })}</span><span className="font-medium text-gray-900">{formatDZD(payroll.sim_commission)}</span></div>
+            <div className="flex justify-between"><span>{interpolate(t('advances.accessory_commission'), { count: payroll.accessory_units })}</span><span className="font-medium text-gray-900">{formatDZD(payroll.accessory_commission)}</span></div>
             {payroll.app_commission_enabled && (
-              <div className="flex justify-between"><span>My Ooredoo app ({payroll.app_installs})</span><span className="font-medium text-gray-900">{formatDZD(payroll.app_commission)}</span></div>
+              <div className="flex justify-between"><span>{interpolate(t('advances.app_commission'), { count: payroll.app_installs })}</span><span className="font-medium text-gray-900">{formatDZD(payroll.app_commission)}</span></div>
             )}
           </div>
 
           {/* What the admin already paid out of the register this month */}
           <div className="mt-3 pt-3 border-t border-gray-200 space-y-1 text-sm">
-            <div className="flex justify-between"><span className="text-gray-600">Paid to me</span><span className="font-bold text-green-700">{formatDZD(payroll.amount_paid)}</span></div>
+            <div className="flex justify-between"><span className="text-gray-600">{t('advances.paid_to_me')}</span><span className="font-bold text-green-700">{formatDZD(payroll.amount_paid)}</span></div>
             {Number(payroll.advance_deducted) > 0 && (
-              <div className="flex justify-between"><span className="text-gray-600">Advance deducted</span><span className="font-medium text-orange-700">{formatDZD(payroll.advance_deducted)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-600">{t('advances.advance_deducted')}</span><span className="font-medium text-orange-700">{formatDZD(payroll.advance_deducted)}</span></div>
             )}
-            <div className="flex justify-between"><span className="text-gray-600">Still to receive</span><span className="font-bold text-gray-900">{formatDZD(payroll.remaining_salary)}</span></div>
+            <div className="flex justify-between"><span className="text-gray-600">{t('advances.still_to_receive')}</span><span className="font-bold text-gray-900">{formatDZD(payroll.remaining_salary)}</span></div>
           </div>
 
           {Array.isArray(payroll.payments) && payroll.payments.length > 0 && (
             <div className="mt-3 space-y-1">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Payments received</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('advances.payments_received')}</p>
               {payroll.payments.map((p) => (
                 <div key={p.id} className={`flex items-center justify-between rounded-md border px-3 py-2 text-sm ${p.is_voided ? 'bg-red-50/50 border-red-100 opacity-75' : 'bg-white border-gray-100'}`}>
                   <div className="min-w-0">
                     <p className={`font-medium ${p.is_voided ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
                       {formatDZD(p.amount)}
-                      {Number(p.advance_deducted) > 0 && <span className="text-xs text-gray-500 font-normal"> + {formatDZD(p.advance_deducted)} advance deducted</span>}
+                      {Number(p.advance_deducted) > 0 && <span className="text-xs text-gray-500 font-normal"> {interpolate(t('advances.advance_deducted_inline'), { amount: formatDZD(p.advance_deducted) })}</span>}
                     </p>
                     <p className="text-xs text-gray-400">
-                      {formatTimestamp(p.created_at)}
+                      {formatTimestamp(p.created_at, locale)}
                       {p.note && <span> — {p.note}</span>}
                       {p.is_voided && <span className="mx-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-700 uppercase tracking-wider">{t('advances.voided')}</span>}
                     </p>
@@ -251,7 +253,7 @@ export default function CashierAdvancePanel({ sessionId = null, refreshKey = 0, 
                         {row.note && <span className="text-gray-500 font-normal"> — {row.note}</span>}
                       </p>
                       <p className="text-xs text-gray-400">
-                        {formatTimestamp(row.created_at)}
+                        {formatTimestamp(row.created_at, locale)}
                         {row.is_voided && <span className="mx-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-700 uppercase tracking-wider">{t('advances.voided')}</span>}
                       </p>
                     </div>

@@ -62,12 +62,12 @@ export default function StormSaleModal({ sessionId, onClose, onComplete }) {
     setLoading(true); setError('');
 
 if (phoneNumber.length >= 9 && clientType === 'corporate' && !custCode.trim()) {
-  setError('Please enter the corporate client custcode.');
+  setError(t('validation.corporate_code_required'));
   setLoading(false);
   return;
 }
 if (isPopNumber && phoneNumber.length >= 9 && !popCycle) {
-  setError('Please choose a POP cycle.');
+  setError(t('validation.pop_cycle_required'));
   setLoading(false);
   return;
 }
@@ -147,11 +147,11 @@ if (isPopNumber && phoneNumber.length >= 9 && !popCycle) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">{t('modal.sale_amount')}</label>
-                <input type="number" step="0.01" value={amount} onChange={(e) => { setAmount(e.target.value); setPointsToRedeem(0); setShowDiscount(false); setDiscountAmount(''); }} placeholder="e.g. 1000" className="w-full px-4 py-3 text-lg font-bold border-2 border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 text-gray-900 transition-colors" autoFocus />
+                <input type="number" step="0.01" value={amount} onChange={(e) => { setAmount(e.target.value); setPointsToRedeem(0); setShowDiscount(false); setDiscountAmount(''); }} placeholder={t('common.example_amount')} className="w-full px-4 py-3 text-lg font-bold border-2 border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 text-gray-900 transition-colors" autoFocus />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">{t('modal.optional_note')}</label>
-                <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Flexy" className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 text-gray-900 transition-colors" />
+                <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('storm.example_note')} className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 text-gray-900 transition-colors" />
               </div>
             </div>
 
@@ -222,7 +222,7 @@ if (isPopNumber && phoneNumber.length >= 9 && !popCycle) {
                     <div><label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">{t('modal.profession')} <span className="lowercase text-gray-400 font-medium">{t('modal.optional')}</span></label><input type="text" value={newCustomerData.profession} onChange={e => setNewCustomerData({...newCustomerData, profession: e.target.value})} className="w-full rounded-lg border border-orange-200 p-2.5 text-sm font-bold text-gray-900 outline-none focus:border-orange-500" /></div>
                     <div className="col-span-2">
                       <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">{t('modal.referred_by')} <span className="lowercase text-gray-400 font-medium">{t('modal.veteran_phone')}</span></label>
-                      <input type="text" placeholder="e.g. 055..." value={newCustomerData.referred_by_phone} onChange={e => setNewCustomerData({...newCustomerData, referred_by_phone: e.target.value})} className="w-full rounded-lg border border-orange-200 p-2.5 text-sm font-bold text-gray-900 outline-none focus:border-orange-500" />
+                      <input type="text" placeholder={t('common.example_phone')} value={newCustomerData.referred_by_phone} onChange={e => setNewCustomerData({...newCustomerData, referred_by_phone: e.target.value})} className="w-full rounded-lg border border-orange-200 p-2.5 text-sm font-bold text-gray-900 outline-none focus:border-orange-500" />
                     </div>
                   </div>
                 </div>
@@ -263,14 +263,14 @@ if (isPopNumber && phoneNumber.length >= 9 && !popCycle) {
         className="mt-0.5 h-5 w-5 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
       />
       <span>
-        <span className="flex items-center gap-1.5 font-bold text-amber-900"><Bell size={16} /> Ooredoo POP number</span>
-        <span className="block text-xs font-medium text-amber-800/80 mt-0.5">Adds this customer to the POP customers and to the POP renewal alerts.</span>
+        <span className="flex items-center gap-1.5 font-bold text-amber-900"><Bell size={16} /> {t('storm.pop_number')}</span>
+        <span className="block text-xs font-medium text-amber-800/80 mt-0.5">{t('storm.pop_hint')}</span>
       </span>
     </label>
 
     {isPopNumber && (
       <div>
-        <div className="text-[11px] font-black uppercase tracking-wider text-amber-800 mb-2">Choose the cycle that suits the client</div>
+        <div className="text-[11px] font-black uppercase tracking-wider text-amber-800 mb-2">{t('storm.choose_cycle')}</div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {[1, 8, 15, 22].map((cycle) => (
             <label
@@ -287,7 +287,7 @@ if (isPopNumber && phoneNumber.length >= 9 && !popCycle) {
                 onChange={(e) => setPopCycle(e.target.checked ? cycle : null)}
                 className="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
               />
-              Cycle {cycle}
+              {t('storm.cycle')} {cycle}
             </label>
           ))}
         </div>
@@ -298,11 +298,11 @@ if (isPopNumber && phoneNumber.length >= 9 && !popCycle) {
 
             {phoneNumber.length >= 9 && (
               <div className="p-4 border-2 border-sky-200 bg-sky-50 rounded-xl space-y-3">
-                <div className="text-[11px] font-black uppercase tracking-wider text-sky-800">Client type</div>
+                <div className="text-[11px] font-black uppercase tracking-wider text-sky-800">{t('storm.client_type')}</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {[
-                    { key: 'regular', label: 'Regular client', Icon: User },
-                    { key: 'corporate', label: 'Corporate client', Icon: Building2 },
+                    { key: 'regular', label: t('storm.client_regular'), Icon: User },
+                    { key: 'corporate', label: t('storm.client_corporate'), Icon: Building2 },
                   ].map(({ key, label, Icon }) => (
                     <label
                       key={key}
@@ -329,14 +329,14 @@ if (isPopNumber && phoneNumber.length >= 9 && !popCycle) {
                 {clientType === 'corporate' && (
                   <div>
                     <label className="block text-[11px] font-black uppercase tracking-wider text-sky-800 mb-1.5">
-                      Client custcode <span className="text-red-600">*</span>
+                      {t('storm.custcode')} <span className="text-red-600">*</span>
                     </label>
                     <input
                       type="text"
                       value={custCode}
                       onChange={(e) => setCustCode(e.target.value)}
                       maxLength={30}
-                      placeholder="e.g. 1234567"
+                      placeholder={t('storm.example_custcode')}
                       className="w-full rounded-lg border-2 border-sky-200 bg-white px-3 py-2.5 text-sm font-bold font-mono text-gray-900 outline-none focus:border-sky-500"
                     />
                   </div>

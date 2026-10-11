@@ -134,6 +134,8 @@ export default function RegisterExpenseModal({ mode = 'cashier', sessionId, stor
             <div className="mt-1 text-xs text-emerald-800 space-y-0.5">
               <div className="flex justify-between"><span>{t('expense.sales_today')}</span><span className="font-mono">{formatDZD(cash.session_sales)}</span></div>
               {cash.session_debts > 0 && <div className="flex justify-between"><span>− {t('expense.debts_today')}</span><span className="font-mono">{formatDZD(cash.session_debts)}</span></div>}
+              {cash.session_card > 0 && <div className="flex justify-between"><span>− {t('expense.card_today')}</span><span className="font-mono">{formatDZD(cash.session_card)}</span></div>}
+              {cash.session_advance > 0 && <div className="flex justify-between"><span>− {t('expense.advance_today')}</span><span className="font-mono">{formatDZD(cash.session_advance)}</span></div>}
               {cash.session_expenses > 0 && <div className="flex justify-between"><span>− {t('expense.expenses_today')}</span><span className="font-mono">{formatDZD(cash.session_expenses)}</span></div>}
               <div className="flex justify-between"><span>{t('expense.previous_balance')}</span><span className="font-mono">{formatDZD(cash.store_balance)}</span></div>
               <div className="flex justify-between font-semibold border-t border-emerald-200 pt-0.5 mt-0.5"><span>{t('expense.available')}</span><span className="font-mono">{formatDZD(cash.available)}</span></div>

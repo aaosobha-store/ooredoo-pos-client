@@ -78,20 +78,20 @@ export default function Layout() {
       {isAdmin && pendingDiscounts.length > 0 && (
         <div className="fixed bottom-6 right-6 rtl:left-6 rtl:right-auto z-[9999] flex flex-col gap-3 pointer-events-none">
           {pendingDiscounts.map(req => (
-            <div key={req.id} className="bg-white rounded-xl shadow-2xl border-l-4 border-amber-500 p-4 w-80 pointer-events-auto animate-in slide-in-from-bottom-4 duration-300 text-start">
+            <div key={req.id} className="bg-white rounded-xl shadow-2xl border-s-4 border-amber-500 p-4 w-80 pointer-events-auto animate-in slide-in-from-bottom-4 duration-300 text-start">
               <div className="flex items-center gap-2 text-amber-600 font-bold mb-2">
                 <ShieldAlert size={18}/> {t('layout.discount_request') || 'layout.discount_request'}
               </div>
               <div className="text-sm text-gray-700 font-medium mb-4 leading-relaxed">
-                <span className="font-bold text-gray-900">{req.cashier_name}</span> is requesting permission to manual discount <span className="font-bold text-gray-900">{req.product_name}</span> 
-                <br/><span className="text-xs text-gray-500">(Original Price: {formatDZD(req.price)})</span>
+                <span className="font-bold text-gray-900">{req.cashier_name}</span> {t('layout.requesting_manual_discount')} <span className="font-bold text-gray-900">{req.product_name}</span> 
+                <br/><span className="text-xs text-gray-500">({t('layout.original_price')}: {formatDZD(req.price)})</span>
               </div>
               <div className="flex gap-2">
                 <button onClick={() => handleResolveDiscount(req.id, 'approved')} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm">
-                  <CheckCircle2 size={16}/> Approve
+                  <CheckCircle2 size={16}/> {t('layout.approve')}
                 </button>
                 <button onClick={() => handleResolveDiscount(req.id, 'rejected')} className="flex-1 bg-red-100 hover:bg-red-200 text-red-800 font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5">
-                  <X size={16} strokeWidth={3}/> Reject
+                  <X size={16} strokeWidth={3}/> {t('layout.reject')}
                 </button>
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function Layout() {
                 <UserCircle size={18} className="hidden sm:block" />
                 <span className="max-w-[100px] sm:max-w-none truncate">{user?.fullName}</span>
                 <span className="bg-red-500 px-2 py-0.5 rounded text-xs uppercase tracking-wider ms-1 text-white">
-                  {user?.role}
+                  {user?.role === 'admin' ? t('layout.role_admin') : user?.role === 'cashier' ? t('layout.role_cashier') : user?.role}
                 </span>
               </div>
               
@@ -180,17 +180,17 @@ export default function Layout() {
                 <NavLink to="/admin/offers" className={navLinkClass} onClick={closeSidebar}><Tags size={18} /> {t('layout.sim_offers')}</NavLink>
                 <NavLink to="/admin/stock" className={navLinkClass} onClick={closeSidebar}><Layers size={18} /> {t('layout.sim_inventory')}</NavLink>
                 <NavLink to="/admin/products" className={navLinkClass} onClick={closeSidebar}><Package size={18} /> {t('layout.products')}</NavLink>
-                <NavLink to="/admin/barcode-settings" className={navLinkClass} onClick={closeSidebar}><Barcode size={18} /> pos.barcode_printing</NavLink>
+                <NavLink to="/admin/barcode-settings" className={navLinkClass} onClick={closeSidebar}><Barcode size={18} /> {t('pos.barcode_printing')}</NavLink>
                 <NavLink to="/admin/users" className={navLinkClass} onClick={closeSidebar}><Users size={18} /> {t('layout.manage_users')}</NavLink>
                 <NavLink to="/admin/customers" className={navLinkClass} onClick={closeSidebar}><UsersRound size={18} /> {t('layout.customers')}</NavLink>
                 <NavLink to="/admin/customer-validation" className={navLinkClass} onClick={closeSidebar}>
-                  <UserCheck size={18} /> Customer Validation
+                  <UserCheck size={18} /> {t('layout.customer_validation')}
                   {correction.pendingCorrections > 0 && (
                     <span className="ms-auto rounded-full bg-amber-500 px-2 py-0.5 text-xs font-black text-white">{correction.pendingCorrections}</span>
                   )}
                 </NavLink>
                 <NavLink to="/admin/finances" className={navLinkClass} onClick={closeSidebar}><Wallet size={18} /> {t('layout.finances')}</NavLink>
-                <NavLink to="/admin/register-ledger" className={navLinkClass} onClick={closeSidebar}><Landmark size={18} /> Register Ledger</NavLink>
+                <NavLink to="/admin/register-ledger" className={navLinkClass} onClick={closeSidebar}><Landmark size={18} /> {t('layout.register_ledger')}</NavLink>
                 <NavLink to="/admin/advances" className={navLinkClass} onClick={closeSidebar}><HandCoins size={18} /> {t('layout.advances')}</NavLink>
                 <NavLink to="/admin/expenses" className={navLinkClass} onClick={closeSidebar}><Receipt size={18} /> {t('layout.expenses')}</NavLink>
                 <NavLink to="/admin/loyalty" className={navLinkClass} onClick={closeSidebar}><Receipt size={18} /> {t('layout.loyalty')}</NavLink>

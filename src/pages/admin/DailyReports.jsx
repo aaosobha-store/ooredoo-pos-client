@@ -223,9 +223,6 @@ export default function DailyReports() {
       </section>
 
       {openReport && <DetailModal report={openReport} loading={detailLoading} onClose={() => setOpenReport(null)} t={t} />}
-      <RxPoolManager />
-      <RxDailyReconciliation />
-      <RxRegistersManager />
     </div>
   );
 }
@@ -708,118 +705,6 @@ const rxFinancesApi = {
   getManualLedger: (from, to) => api.get(RX_FINANCES_PATHS.manualLedger, { params: { from, to } }).then(rxUnwrap),
 };
 
-function RxPoolManager({ onChanged }) {
-  const t = rxUseT();
-  const [pool, setPool] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState('');           // '' | 'sync' | 'convert' | 'entry'
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [entry, setEntry] = useState({ actionType: 'RECHARGE', amount: '', note: '' });
-
-  const load = useCallback(async () => {
-    setLoading(true); setError('');
-    try { setPool(await rxFinancesApi.getPool()); }
-    catch (err) { setError(rxErrMsg(err, t('common.action_failed', 'Action failed.'))); }
-    finally { setLoading(false); }
-  }, [t]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const run = async (key, fn, okMessage) => {
-    setBusy(key); setError(''); setSuccess('');
-    try {
-      const res = await fn();
-      setSuccess(typeof okMessage === 'function' ? okMessage(res) : okMessage);
-      await load();
-      onChanged?.();
-    } catch (err) {
-      setError(rxErrMsg(err, t('common.action_failed', 'Action failed.')));
-    } finally {
-      setBusy('');
-    }
-  };
-
-  const sync = () => run('sync', rxFinancesApi.syncPool, t('pool.synced', 'Pool synced with Ooredoo.'));
-
-  const convert = () => {
-    if (!window.confirm(t('pool.convert_confirm', 'Convert all loyalty points to balance now? This cannot be undone.'))) return;
-    run('convert', rxFinancesApi.convertPoints,
-      (r) => `${t('pool.converted', 'Converted')} ${rxFormatNumber(r.pointsConverted)} ${t('ledger.pts', 'pts')} → ${rxFormatDZD(r.dzdAdded)}`);
-  };
-
-  const amountNum = parseFloat(entry.amount);
-  const entryInvalid = !Number.isFinite(amountNum) || amountNum === 0;
-
-  const submitEntry = (e) => {
-    e.preventDefault();
-    if (entryInvalid) return;
-    run('entry', async () => {
-      const r = await rxFinancesApi.updatePool({ amount: amountNum, actionType: entry.actionType, note: entry.note });
-      setEntry((s) => ({ ...s, amount: '', note: '' }));
-      return r;
-    }, t('pool.entry_saved', 'Manual entry logged.'));
-  };
-
-  return (
-    <div className="space-y-6">
-      <RxPageHeader icon={RxWallet} title={t('pool.title', 'Global pool')} subtitle={t('pool.subtitle', 'Ooredoo balance, bonus and loyalty points')}
-        right={
-          <div className="flex gap-2">
-            <RxSecondaryButton icon={RxRefreshCw} onClick={load} loading={loading}>{t('common.refresh', 'Refresh')}</RxSecondaryButton>
-            <RxPrimaryButton icon={RxRefreshCw} onClick={sync} loading={busy === 'sync'} disabled={!!busy}>{t('pool.sync', 'Sync with Ooredoo')}</RxPrimaryButton>
-          </div>
-        } />
-
-      <RxErrorBanner message={error} />
-      {success && <RxNotice tone="green">{success}</RxNotice>}
-      {loading && !pool && <RxSpinner />}
-
-      {pool && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <RxKvCard icon={RxCoins} color="blue" label={t('pool.balance', 'Balance')} value={rxFormatDZD(pool.balance)} />
-          <RxKvCard icon={RxGift} color="green" label={t('pool.bonus', 'Bonus')} value={rxFormatDZD(pool.bonus)} />
-          <RxKvCard icon={RxRepeat} color="amber" label={t('pool.points', 'Loyalty points')} value={rxFormatNumber(pool.points)} />
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RxCard title={t('pool.convert_title', 'Convert loyalty points')} icon={RxRepeat}>
-          <p className="text-sm text-gray-600 mb-4">
-            {t('pool.convert_help', 'Takes a snapshot, runs the *582# conversion on Ooredoo, re-syncs the pool and logs the result.')}
-          </p>
-          <RxPrimaryButton icon={RxRepeat} onClick={convert} loading={busy === 'convert'} disabled={!!busy || !pool || pool.points <= 0}>
-            {t('pool.convert', 'Convert points to DZD')}
-          </RxPrimaryButton>
-          {pool && pool.points <= 0 && <p className="mt-2 text-xs text-gray-400">{t('pool.no_points', 'No loyalty points to convert.')}</p>}
-        </RxCard>
-
-        <RxCard title={t('pool.entry_title', 'Manual entry')} icon={RxPlusCircle}>
-          <form onSubmit={submitEntry} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <RxField label={t('ledger.type', 'Type')}>
-                <RxSelect value={entry.actionType} onChange={(e) => setEntry({ ...entry, actionType: e.target.value })}>
-                  <option value="RECHARGE">RECHARGE ({t('pool.dzd', 'DZD')})</option>
-                  <option value="REWARD">REWARD ({t('ledger.pts', 'pts')})</option>
-                </RxSelect>
-              </RxField>
-              <RxField label={t('ledger.amount', 'Amount')}>
-                <RxTextInput type="number" step="any" placeholder="0" value={entry.amount} onChange={(e) => setEntry({ ...entry, amount: e.target.value })} />
-              </RxField>
-            </div>
-            <RxField label={t('ledger.note', 'Note')}>
-              <RxTextInput value={entry.note} maxLength={500} onChange={(e) => setEntry({ ...entry, note: e.target.value })} />
-            </RxField>
-            <p className="text-xs text-gray-400">{t('pool.negative_ok', 'A negative amount corrects a previous entry. Zero is not allowed.')}</p>
-            <RxPrimaryButton type="submit" icon={RxPlusCircle} loading={busy === 'entry'} disabled={!!busy || entryInvalid}>
-              {t('pool.save_entry', 'Save entry')}
-            </RxPrimaryButton>
-          </form>
-        </RxCard>
-      </div>
-    </div>
-  );
-}
 
 const RX_EPSILON = 0.005;
 
@@ -839,74 +724,6 @@ const RxAuditRow = ({ label, expected, actual, discrepancy, fmt }) => {
     </tr>
   );
 };
-
-/**
- * getDailyReconciliation — the "logical day" starts at 06:00.
- * expected = opening + activity;  discrepancy = actual − expected.
- */
-
-function RxDailyReconciliation() {
-  const t = rxUseT();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const load = useCallback(async () => {
-    setLoading(true); setError('');
-    try { setData(await rxFinancesApi.getDailyReconciliation()); }
-    catch (err) { setError(rxErrMsg(err, t('common.action_failed', 'Action failed.'))); setData(null); }
-    finally { setLoading(false); }
-  }, [t]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const a = data?.activity;
-
-  return (
-    <div className="space-y-6">
-      <RxPageHeader icon={RxScale} title={t('recon.title', 'Daily reconciliation')}
-        subtitle={data ? `${t('recon.since', 'Since')} ${rxFormatDateTime(data.timeline.start)}` : t('recon.subtitle', 'Expected vs actual pool since 06:00')}
-        right={<RxSecondaryButton icon={RxRefreshCw} onClick={load} loading={loading}>{t('common.refresh', 'Refresh')}</RxSecondaryButton>} />
-
-      <RxErrorBanner message={error} />
-      {loading && !data && <RxSpinner />}
-
-      {data && (
-        <>
-          <div className="grid grid-cols-2 gap-4">
-            <RxKvCard label={t('recon.opening_balance', 'Opening balance (balance + bonus)')} value={rxFormatDZD(data.opening.solde_total)} color="blue" />
-            <RxKvCard label={t('recon.opening_points', 'Opening points')} value={rxFormatNumber(data.opening.points)} color="amber" />
-          </div>
-
-          <RxCard title={t('recon.activity', 'Activity since opening')}>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <RxKvCard label={t('recon.sim_points', 'SIM points earned')} value={rxFormatNumber(a.sim_points_earned)} />
-              <RxKvCard label={t('recon.sim_cost', 'SIM buying cost')} value={`− ${rxFormatDZD(a.sim_buying_cost)}`} color="red" />
-              <RxKvCard label={t('recon.storm', 'Storm sold')} value={`− ${rxFormatDZD(a.storm_sold)}`} color="red" />
-              <RxKvCard label={t('recon.manual_recharges', 'Manual recharges')} value={`+ ${rxFormatDZD(a.manual_recharges)}`} color="green" />
-              <RxKvCard label={t('recon.manual_rewards', 'Manual rewards (pts)')} value={`+ ${rxFormatNumber(a.manual_rewards)}`} color="green" />
-              <RxKvCard label={t('recon.points_converted', 'Points converted')} value={`− ${rxFormatNumber(a.points_converted)}`} color="amber" />
-              <RxKvCard label={t('recon.dzd_converted', 'DZD from conversion')} value={`+ ${rxFormatDZD(a.dzd_converted)}`} color="green" />
-            </div>
-          </RxCard>
-
-          <RxCard title={t('recon.audit', 'Audit: expected vs actual')} icon={RxScale}>
-            <RxTable>
-              <thead><tr><RxTh>&nbsp;</RxTh><RxTh align="end">{t('recon.expected', 'Expected')}</RxTh><RxTh align="end">{t('recon.actual', 'Actual')}</RxTh><RxTh align="end">{t('recon.discrepancy', 'Discrepancy')}</RxTh><RxTh align="center">&nbsp;</RxTh></tr></thead>
-              <tbody className="divide-y divide-gray-100">
-                <RxAuditRow label={t('pool.balance', 'Balance')} fmt={rxFormatDZD} {...data.audit.balance} />
-                <RxAuditRow label={t('pool.points', 'Loyalty points')} fmt={rxFormatNumber} {...data.audit.points} />
-              </tbody>
-            </RxTable>
-            <p className="mt-3 text-xs text-gray-400">
-              {t('recon.formula', 'Expected balance = opening + manual recharges + conversion − SIM cost − Storm. Expected points = opening + SIM points + rewards − converted.')}
-            </p>
-          </RxCard>
-        </>
-      )}
-    </div>
-  );
-}
 
 const RxRegisterCard = ({ store, onSaved, t }) => {
   const [type, setType] = useState('add');
@@ -972,41 +789,3 @@ const RxRegisterCard = ({ store, onSaved, t }) => {
     </RxCard>
   );
 };
-
-/** getRegisters (list) + updateRegister (add / subtract cash for one store). */
-
-function RxRegistersManager() {
-  const t = rxUseT();
-  const [stores, setStores] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
-  const load = useCallback(async () => {
-    setLoading(true); setError('');
-    try { setStores(await rxFinancesApi.getRegisters()); }
-    catch (err) { setError(rxErrMsg(err, t('common.action_failed', 'Action failed.'))); }
-    finally { setLoading(false); }
-  }, [t]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const saved = async (store) => {
-    setSuccess(`${store.name}: ${t('registers.updated', 'register updated.')}`);
-    await load();
-  };
-
-  return (
-    <div className="space-y-6">
-      <RxPageHeader icon={RxStore} title={t('registers.title', 'Cash registers')} subtitle={t('registers.subtitle', 'Physical cash per store')}
-        right={<RxSecondaryButton icon={RxRefreshCw} onClick={load} loading={loading}>{t('common.refresh', 'Refresh')}</RxSecondaryButton>} />
-      <RxErrorBanner message={error} />
-      {success && <RxNotice tone="green">{success}</RxNotice>}
-      {loading && stores.length === 0 && <RxSpinner />}
-      {!loading && stores.length === 0 && !error && <RxEmpty>{t('common.no_data', 'No store.')}</RxEmpty>}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {stores.map((s) => <RxRegisterCard key={s.id} store={s} onSaved={saved} t={t} />)}
-      </div>
-    </div>
-  );
-}

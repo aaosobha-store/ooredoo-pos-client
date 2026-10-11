@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../api/axios';
+import { useLanguage } from '../context/LanguageContext';
 import {
   CheckCircle2, Search, Plus, Phone, User, MapPin, Briefcase,
 } from 'lucide-react';
@@ -17,6 +18,7 @@ const emptyForm = { phone_number: '', first_name: '', last_name: '', address: ''
  * Used by the SIM, Storm, and Accessory sale modals.
  */
 export default function CustomerPicker({ onConfirm, onError }) {
+  const { t } = useLanguage();
   const [phoneInput, setPhoneInput] = useState('');
   const [state, setState]           = useState('idle'); // idle|searching|found|not-found
   const [foundCustomer, setFound]   = useState(null);
@@ -37,7 +39,7 @@ export default function CustomerPicker({ onConfirm, onError }) {
         setState('not-found');
       }
     } catch (err) {
-      onError?.(err.response?.data?.message || 'Lookup failed.');
+      onError?.(err.response?.data?.message || t('validation.lookup_failed'));
       setState('idle');
     }
   };
@@ -54,12 +56,12 @@ export default function CustomerPicker({ onConfirm, onError }) {
         if (lookup.data.data) {
           setFound(lookup.data.data);
           setState('found');
-          onError?.('A customer with that phone already exists. Please confirm.');
+          onError?.(t('validation.customer_exists'));
           setSaving(false);
           return;
         }
       }
-      onError?.(err.response?.data?.message || 'Failed to save customer.');
+      onError?.(err.response?.data?.message || t('validation.customer_save_failed'));
     } finally {
       setSaving(false);
     }
@@ -77,24 +79,24 @@ export default function CustomerPicker({ onConfirm, onError }) {
       <div>
         <div className="rounded-xl border-2 border-green-200 bg-green-50 p-4 space-y-2">
           <div className="flex items-center gap-2 text-green-800 font-semibold">
-            <CheckCircle2 size={18} /> pop.customer_found
+            <CheckCircle2 size={18} /> {t('ussd.customer_found')}
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm pt-2">
-            <Kv icon={<User size={14} />}      label="Name"       value={`${foundCustomer.first_name} ${foundCustomer.last_name}`} />
-            <Kv icon={<Phone size={14} />}     label="Phone"      value={foundCustomer.phone_number} />
-            <Kv icon={<MapPin size={14} />}    label="Address"    value={foundCustomer.address} />
-            <Kv icon={<Briefcase size={14} />} label="Profession" value={foundCustomer.profession} />
+            <Kv icon={<User size={14} />}      label={t('modal.name')}       value={`${foundCustomer.first_name} ${foundCustomer.last_name}`} />
+            <Kv icon={<Phone size={14} />}     label={t('modal.phone')}      value={foundCustomer.phone_number} />
+            <Kv icon={<MapPin size={14} />}    label={t('modal.address')}    value={foundCustomer.address} />
+            <Kv icon={<Briefcase size={14} />} label={t('modal.profession')} value={foundCustomer.profession} />
           </div>
           {((s.sim_count || 0) + (s.storm_count || 0) + (s.accessory_count || 0)) > 0 && (
             <div className="pt-3 mt-3 border-t border-green-200 grid grid-cols-3 gap-2 text-xs">
-              <Mini label="SIMs" value={s.sim_count || 0} />
-              <Mini label="Storm" value={s.storm_count || 0} />
-              <Mini label="Accessories" value={s.accessory_count || 0} />
+              <Mini label={t('ledger.sim_cards')} value={s.sim_count || 0} />
+              <Mini label={t('ledger.storm_bundles')} value={s.storm_count || 0} />
+              <Mini label={t('ledger.products')} value={s.accessory_count || 0} />
             </div>
           )}
           {(s.total_spent || 0) > 0 && (
             <div className="text-center pt-2 text-xs text-green-800">
-              Total spent: <span className="font-bold">{formatDZD(s.total_spent)}</span>
+              {t('modal.total_spent')} <span className="font-bold">{formatDZD(s.total_spent)}</span>
             </div>
           )}
         </div>
@@ -103,13 +105,13 @@ export default function CustomerPicker({ onConfirm, onError }) {
             onClick={reset}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
           >
-            ussd.different_customer
+            {t('ussd.different_customer')}
           </button>
           <button
             onClick={() => onConfirm(foundCustomer)}
             className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700"
           >
-            <CheckCircle2 size={16} /> ussd.confirm_continue
+            <CheckCircle2 size={16} /> {t('ussd.confirm_continue')}
           </button>
         </div>
       </div>
@@ -121,20 +123,20 @@ export default function CustomerPicker({ onConfirm, onError }) {
     return (
       <div>
         <p className="text-xs text-gray-500 mb-3">
-          No pop.customer_found with phone <span className="font-mono">{form.phone_number}</span>. Fill in the details to register them.
+          {t('ussd.no_customer_found')} <span className="font-mono" dir="ltr">{form.phone_number}</span>. {t('ussd.fill_details')}
         </p>
         <form onSubmit={handleCreate} className="space-y-3">
-          <Input label="ussd.phone_number" icon={<Phone size={14} />} value={form.phone_number} onChange={setField('phone_number')} required />
+          <Input label={t('ussd.phone_number')} icon={<Phone size={14} />} value={form.phone_number} onChange={setField('phone_number')} required />
           <div className="grid grid-cols-2 gap-3">
-            <Input label="ussd.first_name" icon={<User size={14} />} value={form.first_name} onChange={setField('first_name')} required />
-            <Input label="ussd.last_name"  icon={<User size={14} />} value={form.last_name}  onChange={setField('last_name')}  required />
+            <Input label={t('ussd.first_name')} icon={<User size={14} />} value={form.first_name} onChange={setField('first_name')} required />
+            <Input label={t('ussd.last_name')}  icon={<User size={14} />} value={form.last_name}  onChange={setField('last_name')}  required />
           </div>
-          <Input label="Address"    icon={<MapPin size={14} />}    value={form.address}    onChange={setField('address')}    required />
-          <Input label="Profession" icon={<Briefcase size={14} />} value={form.profession} onChange={setField('profession')} required />
+          <Input label={t('modal.address')}    icon={<MapPin size={14} />}    value={form.address}    onChange={setField('address')}    required />
+          <Input label={t('modal.profession')} icon={<Briefcase size={14} />} value={form.profession} onChange={setField('profession')} required />
           <div className="pt-2 flex justify-between">
-            <button type="button" onClick={reset} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">ussd.search_again</button>
+            <button type="button" onClick={reset} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">{t('ussd.search_again')}</button>
             <button type="submit" disabled={saving} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50">
-              <Plus size={16} /> {saving ? 'Saving...' : 'Create & continue'}
+              <Plus size={16} /> {saving ? t('common.saving') : t('ussd.create_continue')}
             </button>
           </div>
         </form>
@@ -146,7 +148,7 @@ export default function CustomerPicker({ onConfirm, onError }) {
   return (
     <form onSubmit={handleLookup} className="space-y-3">
       <Input
-        label="Customer ussd.phone_number"
+        label={t('picker.customer_phone')}
         icon={<Phone size={14} />}
         value={phoneInput}
         onChange={setPhoneInput}
@@ -158,7 +160,7 @@ export default function CustomerPicker({ onConfirm, onError }) {
           disabled={state === 'searching' || !phoneInput.trim()}
           className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
         >
-          <Search size={16} /> {state === 'searching' ? 'Searching...' : 'Look up customer'}
+          <Search size={16} /> {state === 'searching' ? t('common.searching') : t('picker.lookup_customer')}
         </button>
       </div>
     </form>
